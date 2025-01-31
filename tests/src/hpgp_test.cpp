@@ -3,9 +3,6 @@
 
 #include "hpgp.h"
 
-#define MME_HEADER_LEN		\
-	(sizeof(struct hpgp_frame) + sizeof(struct hpgp_mme))
-
 TEST_GROUP(HPGP) {
 	void setup(void) {
 	}
@@ -22,7 +19,7 @@ TEST(HPGP, SET_KEY_REQ) {
 		0x00,0x00,0x00,0x01,0x02,0x03,0x04,0x05,
 		0x06,0x07,0x01,0x00,0x01,0x02,0x03,0x04,
 		0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,
-		0x0d,0x0e,0x0f,0x00,0x00,0x00
+		0x0d,0x0e,0x0f
 	};
 
 	uint8_t buf[64];
@@ -38,11 +35,11 @@ TEST(HPGP, SET_KEY_REQ) {
 		.key_selection = 1, /* nmk known to station */
 		.key = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 },
 	};
-	const size_t len = hpgp_pack_request(HPGP_MMTYPE_SET_KEY,
-			&req, buf, sizeof(buf));
+	const size_t len = hpgp_encode_request((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_SET_KEY, &req, sizeof(req));
 
-	LONGS_EQUAL(41, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, GET_KEY_REQ) {
@@ -50,7 +47,6 @@ TEST(HPGP, GET_KEY_REQ) {
 		0x01,0x0c,0x60,0x00,0x00,0x00,0x01,0x01,
 		0x02,0x03,0x04,0x05,0x06,0x07,0xaa,0xaa,
 		0xaa,0xaa,0x04,0x00,0x00,0x00,0x00,0x00,
-		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 		0x00,0x00,0x00,0x00,0x00,0x00
 	};
@@ -65,11 +61,11 @@ TEST(HPGP, GET_KEY_REQ) {
 		.prn = 0,
 		.pmn = 0,
 	};
-	const size_t len = hpgp_pack_request(HPGP_MMTYPE_GET_KEY,
-			&req, buf, sizeof(buf));
+	const size_t len = hpgp_encode_request((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_GET_KEY, &req, sizeof(req));
 
-	LONGS_EQUAL(41, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, GET_KEY_CNF) {
@@ -79,7 +75,7 @@ TEST(HPGP, GET_KEY_CNF) {
 		0x02,0x03,0x04,0x05,0x06,0x07,0x00,0x04,
 		0x00,0x00,0x00,0x00,0x01,0x02,0x03,0x04,
 		0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,
-		0x0d,0x0e,0x0f,0x00,0x00,0x00
+		0x0d,0x0e,0x0f
 	};
 
 	uint8_t buf[64];
@@ -95,11 +91,11 @@ TEST(HPGP, GET_KEY_CNF) {
 		.pmn = 0,
 		.key = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 },
 	};
-	const size_t len = hpgp_pack_confirm(HPGP_MMTYPE_GET_KEY,
-			&cnf, buf, sizeof(buf));
+	const size_t len = hpgp_encode_confirm((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_GET_KEY, &cnf, sizeof(cnf));
 
-	LONGS_EQUAL(41, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, SLAC_PARM_CNF) {
@@ -108,8 +104,6 @@ TEST(HPGP, SLAC_PARM_CNF) {
 		0xff,0xff,0xff,0x0a,0x06,0x01,0x00,0xe0,
 		0x4c,0x36,0x07,0x91,0x00,0x00,0x00,0xe0,
 		0x4c,0x36,0x07,0x91,0x00,0x01,0x00,0x00,
-		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-		0x00,0x00,0x00,0x00,0x00,0x00,
 	};
 
 	uint8_t buf[64];
@@ -124,11 +118,11 @@ TEST(HPGP, SLAC_PARM_CNF) {
 		.forwarding_mac = { 0x00,0xe0,0x4c,0x36,0x07,0x91 },
 		.run_id = { 0x00,0xe0,0x4c,0x36,0x07,0x91,0x00,0x01 },
 	};
-	const size_t len = hpgp_pack_confirm(HPGP_MMTYPE_SLAC_PARM,
-			&cnf, buf, sizeof(buf));
+	const size_t len = hpgp_encode_confirm((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_SLAC_PARM, &cnf, sizeof(cnf));
 
-	LONGS_EQUAL(41, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, ATTEN_CHAR_IND) {
@@ -169,11 +163,11 @@ TEST(HPGP, ATTEN_CHAR_IND) {
 		},
 	};
 
-	const size_t len = hpgp_pack_indication(HPGP_MMTYPE_ATTEN_CHAR,
-			&ind, buf, sizeof(buf));
+	const size_t len = hpgp_encode_indication((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_ATTEN_CHAR, &ind, sizeof(ind));
 
-	LONGS_EQUAL(110, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, ATTEN_CHAR_RSP) {
@@ -185,7 +179,7 @@ TEST(HPGP, ATTEN_CHAR_RSP) {
 		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-		0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+		0x00,0x00,0x00,0x00,0x00,0x00,
 	};
 
 	uint8_t buf[256];
@@ -201,10 +195,10 @@ TEST(HPGP, ATTEN_CHAR_RSP) {
 		},
 	};
 
-	const size_t len = hpgp_pack_response(HPGP_MMTYPE_ATTEN_CHAR,
-			&rsp, buf, sizeof(buf));
-	LONGS_EQUAL(51, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	const size_t len = hpgp_encode_response((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_ATTEN_CHAR, &rsp, sizeof(rsp));
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, SLAC_MATCH_REQ) {
@@ -235,10 +229,10 @@ TEST(HPGP, SLAC_MATCH_REQ) {
 		},
 	};
 
-	const size_t len = hpgp_pack_request(HPGP_MMTYPE_SLAC_MATCH,
-			&req, buf, sizeof(buf));
-	LONGS_EQUAL(66, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	const size_t len = hpgp_encode_request((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_SLAC_MATCH, &req, sizeof(req));
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, SLAC_MATCH_CNF) {
@@ -272,10 +266,10 @@ TEST(HPGP, SLAC_MATCH_CNF) {
 		},
 	};
 
-	const size_t len = hpgp_pack_confirm(HPGP_MMTYPE_SLAC_MATCH,
-			&cnf, buf, sizeof(buf));
-	LONGS_EQUAL(90, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	const size_t len = hpgp_encode_confirm((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_SLAC_MATCH, &cnf, sizeof(cnf));
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, START_ATTEN_CHAR_IND) {
@@ -283,10 +277,7 @@ TEST(HPGP, START_ATTEN_CHAR_IND) {
 		0x01,0x6a,
 		0x60,0x00,0x00,0x00,0x00,0x0a,0x06,0x00,
 		0x00,0xe0,0x4c,0x36,0x07,0x91,0x00,0xe0,
-		0x4c,0x36,0x07,0x91,0x00,0x01,0x00,0x00,
-		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-		0x00,0x00,0x00,0x00,
+		0x4c,0x36,0x07,0x91,0x00,0x01,
 	};
 
 	uint8_t buf[256];
@@ -302,10 +293,10 @@ TEST(HPGP, START_ATTEN_CHAR_IND) {
 		},
 	};
 
-	const size_t len = hpgp_pack_indication(HPGP_MMTYPE_START_ATTEN_CHAR,
-			&ind, buf, sizeof(buf));
-	LONGS_EQUAL(41, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	const size_t len = hpgp_encode_indication((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_START_ATTEN_CHAR, &ind, sizeof(ind));
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
 
 TEST(HPGP, MNBC_SOUND_IND) {
@@ -333,8 +324,8 @@ TEST(HPGP, MNBC_SOUND_IND) {
 		},
 	};
 
-	const size_t len = hpgp_pack_indication(HPGP_MMTYPE_MNBC_SOUND,
-			&ind, buf, sizeof(buf));
-	LONGS_EQUAL(52, len);
-	MEMCMP_EQUAL(expected, buf, len + MME_HEADER_LEN);
+	const size_t len = hpgp_encode_indication((struct hpgp_frame *)buf,
+			HPGP_MMTYPE_MNBC_SOUND, &ind, sizeof(ind));
+	LONGS_EQUAL(sizeof(expected), len);
+	MEMCMP_EQUAL(expected, buf, len);
 }
