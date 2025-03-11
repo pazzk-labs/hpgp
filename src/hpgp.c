@@ -13,8 +13,8 @@
 #define MIN(a, b)		(((a) > (b))? (b) : (a))
 #endif
 
-#if !defined(ARRAY_SIZE)
-#define ARRAY_SIZE(x)		(sizeof(x) / sizeof((x)[0]))
+#if !defined(ARRAY_COUNT)
+#define ARRAY_COUNT(x)		(sizeof(x) / sizeof((x)[0]))
 #endif
 
 typedef size_t (*encoder_func_t)(struct hpgp_mme *mme,
@@ -190,7 +190,7 @@ static size_t encode(struct hpgp_frame *hpgp, hpgp_variant_t variant,
 	set_header(hpgp, variant, get_entity(mmcode),
 			mmcode >> MMTYPE_OFFSET_BIT);
 
-	for (size_t i = 0; i < ARRAY_SIZE(encoders); i++) {
+	for (size_t i = 0; i < ARRAY_COUNT(encoders); i++) {
 		struct encoder *p = &encoders[i];
 
 		if (p->variant == variant && p->type == type) {
