@@ -9,6 +9,10 @@
 
 #define MMTYPE_OFFSET_BIT	2
 
+#if !defined(HPGP_MMVER)
+#define HPGP_MMVER		1
+#endif
+
 #if !defined(MIN)
 #define MIN(a, b)		(((a) > (b))? (b) : (a))
 #endif
@@ -42,11 +46,11 @@ static void set_fmi(struct hpgp_mme *mme)
 	mme->fmi_opt = 0;
 }
 
-static void apply_header(struct hpgp_frame *hpgp, uint16_t mmtype)
+static void apply_header(struct hpgp_frame *hpgp, uint16_t mmtype, uint8_t mmv)
 {
 	struct hpgp_mme *mme = (struct hpgp_mme *)hpgp->body;
 
-	set_mmver(hpgp, 0);
+	set_mmver(hpgp, mmv);
 	set_mmtype(hpgp, mmtype);
 
 	memset(mme, 0, sizeof(*mme));
@@ -64,8 +68,13 @@ static void set_header(struct hpgp_frame *hpgp, hpgp_variant_t variant,
 	const uint16_t entity_shifted = entity << HPGP_MMTYPE_MSB_BIT;
 	const uint16_t type_shifed = type << MMTYPE_OFFSET_BIT;
 	const uint16_t combined = variant | entity_shifted | type_shifed;
+	uint8_t mmv = 0;
 
-	apply_header(hpgp, combined);
+	if (entity != HPGP_ENTITY_VENDOR && entity != HPGP_ENTITY_MANUFACTURE) {
+		mmv = HPGP_MMVER;
+	}
+
+	apply_header(hpgp, combined, mmv);
 }
 
 static hpgp_variant_t get_variant(uint16_t mmtype)
@@ -226,6 +235,11 @@ size_t hpgp_encode_response(struct hpgp_frame *hpgp, hpgp_mmtype_t type,
 }
 
 hpgp_mmtype_t hpgp_mmtype(const struct hpgp_frame *hpgp)
+{
+	return mmcode_to_mmtype(hpgp->mmtype);
+}
+
+hpgp_mmtype_t hpgp_mmtype_raw(const struct hpgp_frame *hpgp)
 {
 	return get_mmtype(hpgp->mmtype);
 }

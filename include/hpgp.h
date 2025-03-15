@@ -105,6 +105,7 @@ size_t hpgp_encode_response(struct hpgp_frame *hpgp, hpgp_mmtype_t type,
 hpgp_mmtype_t hpgp_mmtype(const struct hpgp_frame *hpgp);
 hpgp_variant_t hpgp_variant(const struct hpgp_frame *hpgp);
 hpgp_entity_t hpgp_entity(const struct hpgp_frame *hpgp);
+hpgp_mmtype_t hpgp_mmtype_raw(const struct hpgp_frame *hpgp);
 
 int hpgp_set_header(struct hpgp_frame *hpgp, hpgp_variant_t variant,
 		hpgp_entity_t entity, hpgp_mmtype_t type);
