@@ -13,10 +13,6 @@
 #define HPGP_MMVER		1
 #endif
 
-#if !defined(MIN)
-#define MIN(a, b)		(((a) > (b))? (b) : (a))
-#endif
-
 #if !defined(ARRAY_COUNT)
 #define ARRAY_COUNT(x)		(sizeof(x) / sizeof((x)[0]))
 #endif
@@ -65,8 +61,8 @@ static void set_header(struct hpgp_frame *hpgp, hpgp_variant_t variant,
 	entity &= 0x7; /* 3 bits */
 	type &= 0x7ff; /* 11 bits */
 
-	const uint16_t entity_shifted = entity << HPGP_MMTYPE_MSB_BIT;
-	const uint16_t type_shifed = type << MMTYPE_OFFSET_BIT;
+	const uint16_t entity_shifted = (uint16_t)(entity << HPGP_MMTYPE_MSB_BIT);
+	const uint16_t type_shifed = (uint16_t)(type << MMTYPE_OFFSET_BIT);
 	const uint16_t combined = variant | entity_shifted | type_shifed;
 	uint8_t mmv = 0;
 
